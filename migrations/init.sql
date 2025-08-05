@@ -1,0 +1,10 @@
+CREATE DATABASE IF NOT EXISTS `stellar_wallets`;
+
+USE `stellar_wallets`;
+
+CREATE TABLE IF NOT EXISTS `wallets` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `publicKey` VARCHAR(56) NOT NULL UNIQUE,
+  `secretKey` VARCHAR(56) NOT NULL,
+  `createdAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
