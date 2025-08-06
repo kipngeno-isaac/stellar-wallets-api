@@ -9,6 +9,7 @@ app.use(bodyParser.json());
 
 const PORT = process.env.PORT || 3000;
 const STELLAR_NETWORK = process.env.STELLAR_NETWORK || "TESTNET"; // or 'PUBLIC'
+const STELLAR_NETWORK_PASSPHRASE="Test SDF Network ; September 2015";
 
 // Initialize Stellar server
 // const server = new StellarSdk.Server(
@@ -130,7 +131,8 @@ app.post('/api/transaction/send-payment', async (req, res) => {
     const sourceKeypair = StellarSdk.Keypair.fromSecret(senderSecretKey);
     const account = await server.loadAccount(sourceKeypair.publicKey());
     
-    const transaction = new StellarSdk.TransactionBuilder(account, { fee: StellarSdk.BASE_FEE })
+    
+    const transaction = new StellarSdk.TransactionBuilder(account, { fee: StellarSdk.BASE_FEE,   networkPassphrase: STELLAR_NETWORK_PASSPHRASE })
       .addOperation(StellarSdk.Operation.payment({
         destination: destinationPublicKey,
         asset: StellarSdk.Asset.native(),
@@ -155,8 +157,37 @@ app.post('/api/transaction/send-payment', async (req, res) => {
   }
 });
 
+function createWallet(){
+  try {
+     // 1. Generate a new keypair for the user
+    const pair = StellarSdk.Keypair.random();
+    const publicKey = pair.publicKey();
+    const secretKey = pair.secret();
+    const wallet = {publicKey, secretKey}
+    return wallet
+  } catch (error) {
+        console.error('Error creating wallet:', error);
+  }
+}
+
+async function fundWallet(walletPublicKey){
+ try{
+// 2. Fund the new account on the Testnet using Friendbot
+    // In a production environment, you would fund this from a funded "main" account
+    const friendbotUrl = `https://friendbot.stellar.org/?addr=${encodeURIComponent(
+      publicKey
+    )}`;
+    await fetch(friendbotUrl);
+
+ } catch (error) {
+        console.error('Failed to fund wallet:', error);
+  }
+}
+
+// console.log("wallet",createWallet())
+
 checkDbConnectionAndMigrate().then(() => {
-  app.listen(port, () => {
-    console.log(`Stellar API listening at http://localhost:${port}`);
+  app.listen(PORT, () => {
+    console.log(`Stellar API listening at http://localhost:${PORT}`);
   });
 });
