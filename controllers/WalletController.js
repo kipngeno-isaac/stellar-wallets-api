@@ -5,7 +5,7 @@ const HORIZON_URL = process.env.HORIZON_URL;
 const STELLAR_NETWORK_PASSPHRASE = process.env.STELLAR_NETWORK_PASSPHRASE;
 
 const server = new StellarSdk.Horizon.Server(HORIZON_URL);
-StellarSdk.Horizon.Network.use(new StellarSdk.Horizon.Network(STELLAR_NETWORK_PASSPHRASE));
+// StellarSdk.Horizon.Network.use(new StellarSdk.Horizon.Network(STELLAR_NETWORK_PASSPHRASE));
 
 exports.createWallet = async (req, res) => {
   const { userId } = req.user; // Retrieved from the JWT token
