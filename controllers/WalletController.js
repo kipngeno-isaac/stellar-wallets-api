@@ -4,8 +4,8 @@ const Wallet = require('../models/Wallet');
 const HORIZON_URL = process.env.HORIZON_URL;
 const STELLAR_NETWORK_PASSPHRASE = process.env.STELLAR_NETWORK_PASSPHRASE;
 
-const server = new StellarSdk.Server(HORIZON_URL);
-StellarSdk.Network.use(new StellarSdk.Network(STELLAR_NETWORK_PASSPHRASE));
+const server = new StellarSdk.Horizon.Server(HORIZON_URL);
+StellarSdk.Horizon.Network.use(new StellarSdk.Horizon.Network(STELLAR_NETWORK_PASSPHRASE));
 
 exports.createWallet = async (req, res) => {
   const { userId } = req.user; // Retrieved from the JWT token
@@ -97,5 +97,42 @@ exports.sendPayment = async (req, res) => {
   } catch (error) {
     console.error('Error sending payment:', error);
     res.status(500).json({ error: 'Failed to send payment.' });
+  }
+};
+
+exports.getTransactionHistory = async (req, res) => {
+  const { userId } = req.user;
+
+  try {
+    const userWallets = await Wallet.findByUserId(userId);
+    if (userWallets.length === 0) {
+      return res.status(404).json({ error: 'No wallet found for the current user.' });
+    }
+
+    const sourcePublicKey = userWallets[0].publicKey;
+
+    // Use Stellar SDK to query Horizon for payments
+    const payments = await server.payments()
+      .forAccount(sourcePublicKey)
+      .order('desc') // Order by most recent first
+      .limit(20)    // Limit to the 20 most recent transactions
+      .call();
+    
+    // Process and format the payments data for a clean response
+    const history = payments.records.map(record => ({
+      id: record.id,
+      type: record.type,
+      from: record.from,
+      to: record.to,
+      assetType: record.asset_type,
+      amount: record.amount,
+      date: record.created_at
+    }));
+
+    res.status(200).json(history);
+
+  } catch (error) {
+    console.error('Error fetching transaction history:', error);
+    res.status(500).json({ error: 'Failed to fetch transaction history.' });
   }
 };
