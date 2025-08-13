@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 require('dotenv').config();
 const { checkDbConnectionAndMigrate } = require('./db');
 const authRoutes = require('./routes/auth');
@@ -7,6 +8,7 @@ const walletRoutes = require('./routes/wallet');
 const app = express();
 const port = 3000;
 
+app.use(cors());
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
